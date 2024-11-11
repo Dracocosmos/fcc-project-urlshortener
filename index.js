@@ -23,7 +23,7 @@ app.get('/', function(req, res) {
 let urlList = {};
 let curId = 0;
 const getSetShortUrl = (url) => {
-  // if already found, return
+  // if found, return it
   if (urlList[url]) {
     return urlList[url]
   }
@@ -32,10 +32,11 @@ const getSetShortUrl = (url) => {
   curId++
 
   // set id
+  urlList[curId] = url
   urlList[url] = curId
 
   // return Id
-  return urlList[url]
+  return curId
 }
 
 const parser = bodyParser.urlencoded({
@@ -58,26 +59,24 @@ app.post('/api/shorturl', parser, function(req, res) {
   isValidUrl(req.body.url)
     .then(
       value => {
-        console.log('value', value)
-        console.log(req.body)
         res.json({
-          original_url: value.origin,
-          short_url: getSetShortUrl(value.origin)
+          original_url: value.href,
+          short_url: getSetShortUrl(value.href)
         })
       }
     ).catch(
       error => {
-        console.log(error)
         res.json({ error: 'invalid url' })
       }
     )
 });
 
-app.get('/api/shorturl/*', function(req, res) {
+app.get('/api/shorturl/:shortUrl', function(req, res) {
+  const shortUrl = req.params.shortUrl
 
-  res.send('hi')
-  //TODO:
-  // res.render('')
+  urlList[shortUrl]
+    ? res.redirect(urlList[shortUrl])
+    : res.json({ error: 'invalid url' })
 })
 
 
